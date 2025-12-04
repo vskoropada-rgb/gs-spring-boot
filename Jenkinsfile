@@ -25,14 +25,14 @@ pipeline {
             sh """
             curl -s -X POST https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage \
                 -d chat_id=${TELEGRAM_CHAT_ID} \
-                -d text="✅ SUCCESS: ${JOB_NAME} #${BUILD_NUMBER} completed successfully!"
+                -d text="✅ SUCCESS: Job '${JOB_NAME}' Build #${BUILD_NUMBER} completed successfully!"
             """
         }
         failure {
             sh """
             curl -s -X POST https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage \
                 -d chat_id=${TELEGRAM_CHAT_ID} \
-                -d text="❌ FAILURE: ${JOB_NAME} #${BUILD_NUMBER} failed!"
+                -d text="❌ FAILURE: Job '${JOB_NAME}' Build #${BUILD_NUMBER} failed!"
             """
         }
     }
