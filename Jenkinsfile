@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven3'     // ← назва має збігатися з тiєю, що у Manage Jenkins → Tools
-        jdk 'JDK17'        // ← якщо використовуєш JDK
+        maven 'Maven3'
+        jdk 'JDK17'
     }
 
     environment {
@@ -22,13 +22,17 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh "mvn clean install"
+                dir('complete') {             // ← працюємо всередині папки complete
+                    sh "mvn clean install"
+                }
             }
         }
 
         stage('Archive Artifact') {
             steps {
-                archiveArtifacts artifacts: '**/*.jar', fingerprint: true
+                dir('complete/target') {
+                    archiveArtifacts artifacts: '*.jar', fingerprint: true
+                }
             }
         }
     }
