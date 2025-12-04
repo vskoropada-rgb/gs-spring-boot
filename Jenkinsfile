@@ -1,40 +1,39 @@
 pipeline {
     agent any
 
-    tools {
-        maven 'Maven3'
-        jdk 'JDK17'
+    environment {
+        TELEGRAM_TOKEN = credentials('TELEGRAM_TOKEN')
+        TELEGRAM_CHAT_ID = credentials('TELEGRAM_CHAT_ID')
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/vskoropada-rgb/gs-spring-boot.git'
+                git 'https://github.com/vskoropada-rgb/gs-spring-boot.git'
             }
         }
 
         stage('Build') {
             steps {
-                dir('complete') {    // ВАЖЛИВО: pom.xml у папці complete
-                    sh 'mvn clean install'
-                }
-            }
-        }
-
-        stage('Archive Artifact') {
-            steps {
-                archiveArtifacts artifacts: 'complete/target/*.jar', fingerprint: true
+                sh "mvn clean install"
             }
         }
     }
 
     post {
         success {
-            echo "Build SUCCESS!"
+            sh """
+            curl -s -X POST https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage \
+                -d chat_id=${TELEGRAM_CHAT_ID} \
+                -d text="✅ SUCCESS: ${JOB_NAME} #${BUILD_NUMBER} completed successfully!"
+            """
         }
         failure {
-            echo "Build FAILED!"
+            sh """
+            curl -s -X POST https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage \
+                -d chat_id=${TELEGRAM_CHAT_ID} \
+                -d text="❌ FAILURE: ${JOB_NAME} #${BUILD_NUMBER} failed!"
+            """
         }
     }
 }
