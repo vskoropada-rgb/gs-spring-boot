@@ -1,12 +1,24 @@
 pipeline {
     agent any
 
+    tools {
+        maven 'Maven3'     // ← назва має збігатися з тiєю, що у Manage Jenkins → Tools
+        jdk 'JDK17'        // ← якщо використовуєш JDK
+    }
+
     environment {
         TELEGRAM_TOKEN = credentials('TELEGRAM_TOKEN')
         TELEGRAM_CHAT_ID = credentials('TELEGRAM_CHAT_ID')
     }
 
     stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/vskoropada-rgb/gs-spring-boot.git'
+            }
+        }
 
         stage('Build') {
             steps {
@@ -16,7 +28,7 @@ pipeline {
 
         stage('Archive Artifact') {
             steps {
-                archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+                archiveArtifacts artifacts: '**/*.jar', fingerprint: true
             }
         }
     }
@@ -29,7 +41,6 @@ pipeline {
                 -d text="✅ SUCCESS: Job '${JOB_NAME}' Build #${BUILD_NUMBER} completed successfully!"
             """
         }
-
         failure {
             sh """
             curl -s -X POST https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage \
