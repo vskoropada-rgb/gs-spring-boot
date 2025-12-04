@@ -7,15 +7,16 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                git 'https://github.com/vskoropada-rgb/gs-spring-boot.git'
-            }
-        }
 
         stage('Build') {
             steps {
                 sh "mvn clean install"
+            }
+        }
+
+        stage('Archive Artifact') {
+            steps {
+                archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
             }
         }
     }
@@ -28,6 +29,7 @@ pipeline {
                 -d text="✅ SUCCESS: Job '${JOB_NAME}' Build #${BUILD_NUMBER} completed successfully!"
             """
         }
+
         failure {
             sh """
             curl -s -X POST https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage \
